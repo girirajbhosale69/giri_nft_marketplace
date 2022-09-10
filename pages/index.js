@@ -1,7 +1,7 @@
 const Home = () => (
   <div>
     <h1 className="text-3xl font-bold underline">
-      HELLO WORLD! THIS IS MY NFT MARKETPLACE NIGGA!!
+      HELLO WORLD!
     </h1>
   </div>
 );
