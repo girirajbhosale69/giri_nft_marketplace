@@ -1,17 +1,30 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { Banner, CreatorCard, NFTCard } from '../components';
+
+import { NFTContext } from '../context/NFTContext';
 
 import images from '../assets';
 import { makeId } from '../utils/makeid';
 
 const Home = () => {
+  const { fetchNFTs } = useContext(NFTContext);
   const [hideButtons, sethideButtons] = useState(false);
+  const [nfts, setNfts] = useState([]);
   const { theme } = useTheme();
   const parentRef = useRef(null);
   const scrollRef = useRef(null);
+
+  useEffect(() => {
+    fetchNFTs()
+      .then((items) => {
+        setNfts(items);
+
+        console.log(items);
+      });
+  }, []);
 
   const handleScroll = (direction) => {
     const { current } = scrollRef;
@@ -54,8 +67,7 @@ const Home = () => {
           parentStyles="justify-start mb-6 h-72 sm:h-60 p-12 xs:p-4 xs:h-44 rounded-3xl"
         />
         <div>
-          <h1 className="font-poppins dark:text-white text-nft-black-1 text-2xl minlg:text-4xl text-semibold ml-4 xs:ml-0">Dope Creators</h1>
-
+          <h1 className="font-poppins dark:text-white text-nft-black-1 text-2xl minlg:text-4xl font-semibold ml-4 xs:ml-0">Dope Creators</h1>
           <div className="relative flex-1 max-w-full flex mt-3" ref={parentRef}>
             <div className="flex flex-row w-max overflow-x-scroll no-scrollbar select-none" ref={scrollRef}>
               {[6, 7, 8, 9, 10].map((i) => (
@@ -90,8 +102,9 @@ const Home = () => {
             <div>Search Bar</div>
           </div>
           <div className="mt-3 w-full flex flex-wrap justify-start md:justify-center">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-              <NFTCard
+            {nfts.map((nft) => <NFTCard key={nft.tokenId} nft={nft} />)}
+            {/* {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+              //<NFTCard
                 key={`nft-${i}`}
                 nft={{
                   i,
@@ -102,7 +115,7 @@ const Home = () => {
                   description: 'Cool NFTs on Sale',
                 }}
               />
-            ))}
+            ))} */}
           </div>
         </div>
       </div>
