@@ -13,6 +13,8 @@ const options = { host: 'ipfs.infura.io', protocol: 'https', port: 5001, headers
 const client = ipfsHttpClient(options);
 const dedicatedEndPoint = 'https://giri-nft-marketplace.infura-ipfs.io';
 
+const fetchContract = (signerOrProvider) => new ethers.Contract(MarketAddress, MarketAddressABI, signerOrProvider);
+
 export const NFTContext = React.createContext();
 
 export const NFTProvider = ({ children }) => {
@@ -41,6 +43,10 @@ export const NFTProvider = ({ children }) => {
     window.location.reload();
   };
 
+  useEffect(() => {
+    checkIfWalletIsConnected();
+  }, []);
+
   const uploadToInfura = async (file) => {
     try {
       const added = await client.add({ content: file });
@@ -53,12 +59,43 @@ export const NFTProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    checkIfWalletIsConnected();
-  }, []);
+  const createNFT = async (formInput, fileUrl, router) => {
+    const { name, description, price } = formInput;
+
+    if (!name || !description || !price || !fileUrl) return;
+
+    const data = JSON.stringify({ name, description, image: fileUrl });
+    try {
+      const added = await client.add(data);
+
+      const url = `${dedicatedEndPoint}/ipfs/${added.path}`;
+
+      await createSale(url, price);
+
+      router.push('/');
+    } catch (error) {
+      console.log('Error uploading file to IPFS.');
+      console.log(error);
+    }
+  };
+
+  const createSale = async (url, formInputPrice, isReselling, id) => {
+    const web3Modal = new Web3Modal();
+    const connection = await web3Modal.connect();
+    const provider = new ethers.providers.Web3Provider(connection);
+    const signer = provider.getSigner();
+
+    const price = ethers.utils.parseUnits(formInputPrice, 'ether');
+    const contract = fetchContract(signer);
+    const listingPrice = await contract.getListingPrice();
+
+    const transaction = await contract.createToken(url, price, { value: listingPrice.toString() });
+
+    await transaction.wait();
+  };
 
   return (
-    <NFTContext.Provider value={{ nftCurrency, connectWallet, currentAccount, uploadToInfura }}>
+    <NFTContext.Provider value={{ nftCurrency, connectWallet, currentAccount, uploadToInfura, createNFT }}>
       {children}
     </NFTContext.Provider>
   );
