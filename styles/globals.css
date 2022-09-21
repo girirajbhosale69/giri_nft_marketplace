@@ -50,7 +50,7 @@
 }
   
 .fa-moon {
-    color: pink;
+    color: fuchsia;
     font-size: 9px;
 }
   
@@ -107,6 +107,10 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
+}
+
+.rounded-xl{
+    border-radius: 0.75rem;
 }
 
 @keyframes fadeIn {
